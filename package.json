@@ -1,0 +1,23 @@
+{
+  "name": "msa-cli",
+  "version": "0.0.2-beta-5",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "msa-cli": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "js-yaml": "^4.1.0",
+    "lodash": "^4.17.21"
+  }
+}
