@@ -13,7 +13,7 @@ program
     // 定义路径
     const descriptionPath = path.resolve(process.cwd(), 'description.yaml');
     const packagePublishPath = path.resolve(__dirname, 'publish.yaml');
-    const outputPath = path.resolve(process.cwd(), output); // 合并后的输出文件
+    const outputPath = path.resolve(process.cwd(), 'publish.yaml'); // 合并后的输出文件
 
 		if (!fs.existsSync(path.resolve(process.cwd(), 'src'))) {
 			fs.mkdirSync(path.resolve(process.cwd(), 'src'));
