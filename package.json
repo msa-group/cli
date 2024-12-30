@@ -1,6 +1,6 @@
 {
-  "name": "msa-cli",
-  "version": "0.0.2-beta-5",
+  "name": "msa-tool",
+  "version": "0.0.1-beta-1",
   "description": "",
   "main": "index.js",
   "bin": {
