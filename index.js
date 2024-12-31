@@ -13,8 +13,10 @@ program
     // 定义路径
     const descriptionPath = path.resolve(process.cwd(), 'description.yaml');
     const packagePublishPath = path.resolve(__dirname, 'publish.yaml');
+    const msaFilePath = path.resolve(process.cwd(), 'msa.yaml');
     const outputPath = path.resolve(process.cwd(), 'publish.yaml'); // 合并后的输出文件
 
+    // 创建 src 目录
 		if (!fs.existsSync(path.resolve(process.cwd(), 'src'))) {
 			fs.mkdirSync(path.resolve(process.cwd(), 'src'));
 		}
@@ -29,6 +31,13 @@ program
         console.error(`内部 publish.yaml 文件不存在: ${packagePublishPath}`);
         process.exit(1);
       }
+      if (!fs.existsSync(msaFilePath)) {
+        console.error(`msa.yaml 文件不存在: ${msaFilePath}`);
+        process.exit(1);
+      }
+
+      // 将 msa.yaml cp 到 src 下， 并改名为 s.yaml
+      fs.copyFileSync(msaFilePath, path.resolve(process.cwd(), 'src', 's.yaml'));
 
       // 读取并解析 description.yaml
       const descriptionFile = fs.readFileSync(descriptionPath, 'utf8');
@@ -50,7 +59,7 @@ program
       // 将合并后的YAML写入新的文件
       fs.writeFileSync(outputPath, mergedYaml, 'utf8');
 
-      console.log(`成功将 ${description} 合并到内部 publish.yaml，结果已保存到 ${output}`);
+      console.log(`成功将 description.yaml 合并到内部 publish.yaml，结果已保存到 ${outputPath}`);
     } catch (e) {
       console.error('合并YAML文件时出错:', e.message);
       process.exit(1);
