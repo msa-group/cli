@@ -1,6 +1,6 @@
 {
   "name": "msa-tool",
-  "version": "0.0.1-beta-1",
+  "version": "0.0.1-beta-5",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -16,8 +16,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@rspack/cli": "^1.1.8",
+    "@rspack/core": "^1.1.8",
+    "@rspack/dev-server": "^1.0.10",
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "msa-engine": "^0.0.1-beta-8"
   }
 }
