@@ -1,6 +1,6 @@
 {
   "name": "msa-tool",
-  "version": "0.0.1-beta-9",
+  "version": "0.0.1-beta-11",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -22,6 +22,6 @@
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "msa-engine": "^0.0.1-beta-12"
+    "msa-engine": "^0.0.1-beta-14"
   }
 }
