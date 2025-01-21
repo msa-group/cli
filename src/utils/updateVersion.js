@@ -4,8 +4,6 @@ const axios = require('axios');
 const yaml = require('js-yaml');
 const semver = require('semver');
 
-
-
 async function getVersion(projectName) {
     // 获取当前版本号
     const url = `https://api.devsapp.cn/v3/packages/${projectName}/release/latest`
@@ -14,9 +12,10 @@ async function getVersion(projectName) {
     return version;
 }
 
-const updateVersion = async (descriptionData, descriptionFile, semverType) => {
+const updateVersion = async (descriptionData, descriptionFile) => {
     const projectName = descriptionData.Name;
     const currentVersion = await getVersion(projectName);
+    const semverType = process.env.SEMVER_TYPE;
 
     // 计算出下一个版本的版本号
     description.Version = semver.inc(currentVersion, semverType);

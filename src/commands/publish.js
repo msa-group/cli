@@ -3,15 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 const _ = require('lodash');
-const { program } = require('commander');
 const updateVersion = require('../utils/updateVersion');
 
-// 获取命令行参数：semver的升级类型
-program.option('-s, --semverType <char>');
-program.parse();
-
-const options = program.opts();
-const { semverType } = options;
 function getFilePath(dir, fileName) {
   const yamlPath = path.resolve(dir, `${fileName}.yaml`);
   const ymlPath = path.resolve(dir, `${fileName}.yml`);
@@ -57,7 +50,7 @@ try {
   // 读取并解析 description.yaml
   const descriptionFile = fs.readFileSync(descriptionPath, 'utf8');
   const descriptionData = yaml.load(descriptionFile);
-  const updateDescripData = updateVersion(descriptionData, descriptionFile, semverType);
+  const updateDescripData = updateVersion(descriptionData, descriptionFile);
 
   // 读取并解析 包内的 publish.yaml
   const publishFile = fs.readFileSync(packagePublishPath, 'utf8');
