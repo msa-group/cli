@@ -9,6 +9,13 @@ program
     require('./bin/mergeFile');
   });
 
+  program
+  .command('generate')
+  .description('generate readme.md and readme_en.md in the current directory')
+  .action(() => {
+    require('./bin/generateRM');
+  });
+
 
 program
   .command('dev')

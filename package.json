@@ -1,6 +1,6 @@
 {
-  "name": "msa-tool",
-  "version": "0.0.1-beta-11",
+  "name": "@ali/msa-cli",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -11,7 +11,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org"
+    "registry": "https://registry.anpm.alibaba-inc.com"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "@rspack/cli": "^1.1.8",
     "@rspack/core": "^1.1.8",
     "@rspack/dev-server": "^1.0.10",
+    "axios": "^1.7.9",
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
