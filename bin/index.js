@@ -6,14 +6,14 @@ program
   .command('publish')
   .description('publish an external description.yaml into the internal publish.yaml')
   .action(() => {
-    require('./bin/mergeFile');
+    require('../src/commands/publish');
   });
 
   program
   .command('generate')
   .description('generate readme.md and readme_en.md in the current directory')
   .action(() => {
-    require('./bin/generateRM');
+    require('../src/commands/generate');
   });
 
 
@@ -23,7 +23,7 @@ program
   .option('-f, --file <file>', 'The entry yaml file to serve')
   .action((options) => {
     process.env.MSA_ENTRY_FILE = options.file || 'msa.yml';
-    require('./bin/serve');
+    require('../src/commands/serve');
   });
 
 program.parse(process.argv);

@@ -1,17 +1,17 @@
 {
-  "name": "@ali/msa-cli",
-  "version": "0.0.2",
+  "name": "msa-tool",
+  "version": "0.0.1-beta-12",
   "description": "",
   "main": "index.js",
   "bin": {
-    "msa-tool": "./index.js"
+    "msa-tool": "./bin/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.anpm.alibaba-inc.com"
+    "registry": "https://registry.npmjs.org"
   },
   "author": "",
   "license": "ISC",
@@ -23,6 +23,7 @@
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "msa-engine": "^0.0.1-beta-14"
+    "msa-engine": "^0.0.1-beta-14",
+    "semver": "^7.6.3"
   }
 }
