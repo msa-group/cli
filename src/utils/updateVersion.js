@@ -12,19 +12,20 @@ async function getVersion(projectName) {
     return version;
 }
 
-const updateVersion = async (descriptionData, descriptionFile) => {
+const updateVersion = async (descriptionData, descriptionPath) => {
     const projectName = descriptionData.Name;
     const currentVersion = await getVersion(projectName);
     const semverType = process.env.SEMVER_TYPE;
 
     // 计算出下一个版本的版本号
-    description.Version = semver.inc(currentVersion, semverType);
-    const updateDescript = yaml.dump(description, {
+    descriptionData.Version = semver.inc(currentVersion, semverType);
+    const updateDescript = yaml.dump(descriptionData, {
         lineWidth: -1, // 防止自动换行
         noRefs: true   // 移除引用
     })
     // 更改description.yml中的版本号
-    fs.writeFileSync(descriptionFile, updateDescript, 'utf8');
+    await fs.writeFileSync(descriptionPath, updateDescript, 'utf8');
+    return descriptionData
 }
 
-export default updateVersion;
+module.exports = updateVersion;
