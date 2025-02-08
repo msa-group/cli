@@ -29,7 +29,7 @@ module.exports = async function (url) {
     // 如果README.md文件未发生变化，则跳过生成
     if (!isChanged) {
         console.log('README.md 文件未发生变化，跳过生成');
-        process.exit(1)
+        return;
     }
         
     const descriptionContent = fs.readFileSync(readmePath, 'utf8');
