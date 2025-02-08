@@ -2,92 +2,46 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const yaml = require('js-yaml');
 
-const apiKey = process.env.BAILIAN_API_KEY;
-const appId = process.env.BAILIAN_APP_ID;
+const readmePath = path.resolve(process.cwd(), 'README.md');
+const outputPath_zh = path.resolve(process.cwd(), 'readme_test.md');
+const outputPath_en = path.resolve(process.cwd(), 'readme_en.md')
 
-const outputZhPath = path.resolve(process.cwd(), 'readme.md');
-const outputEnPath = path.resolve(process.cwd(), 'readme_en.md');
-const inputPath = path.resolve(process.cwd(), 'description.yml');
-
-// 提取description.yml 的 project 信息
-async function getProject() {
-    try {
-        const descriptionContent = fs.readFileSync(inputPath, 'utf8');
-        const description = yaml.load(descriptionContent);
-        const project = description.Project;
-        if (!project) {
-            console.error('description.yml中不存在 Project 节点，无法生成 Readme');
-            process.exit(1);
-        }
-        delete description.Project;
-        const deletedYaml = yaml.dump(description, {
-            lineWidth: -1, // 防止自动换行
-            noRefs: true   // 移除引用
-        })
-        fs.writeFileSync(inputPath, deletedYaml, 'utf8');
-        return project;
-    } catch (e) {
-        console.error('解析description.yml出错：', e.message);
+module.exports = async function (url) {
+    const descriptionContent = fs.readFileSync(readmePath, 'utf8');
+    if (!descriptionContent) {
+        console.error('不存在原始 README.md 文件，无法生成 Readme');
         process.exit(1);
     }
-   
-}
-async function callDashScope(project) {
-    const syamlPath = path.resolve(process.cwd(), 'msa.yml')
-    const syamlContent = fs.readFileSync(syamlPath, 'utf8');
-
-    const url = `https://dashscope.aliyuncs.com/api/v1/apps/${appId}/completion`;
-    const data = {
-        input: {
-            prompt: "你是谁",
-            biz_params: {
-                project: JSON.stringify(project),
-                syaml: syamlContent
-            }
-        },
-        parameters: {},
-        debug: {}
-    };
-
+    if (!url) {
+        console.error('Error: URL is required. Use -u or --url to specify the FC service URL.');
+        process.exit(1);
+    }
+    console.log(`Generating README files using FC service at: ${url}`);
     try {
-        const response = await axios.post(url, data, {
+        // 发送 POST 请求到指定的 FC 服务 URL
+        const response = await axios.post(url, {
+            descriptionContent: descriptionContent,
+        }, {
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
+                'Content-Type': 'application/json',
+            },
+            timeout: 600000, // 设置超时时间（毫秒）
         });
-        return response;
+        console.log('FC 函数响应:', response.data);
+        fs.writeFileSync(outputPath_zh, response.data.zh, 'utf8');
+        fs.writeFileSync(outputPath_en, response.data.en, 'utf8');
     } catch (error) {
-        console.error(`Error calling DashScope: ${error.message}`);
         if (error.response) {
-            console.error(`Response status: ${error.response.status}`);
-            console.error(`Response data: ${JSON.stringify(error.response.data, null, 2)}`);
+            // 服务器响应了状态码，但状态码不是2xx
+            console.error('HTTP 错误响应:', error.response.status, error.response.data);
+        } else if (error.request) {
+            // 请求已发送但未收到响应
+            console.error('未收到响应:', error.request);
+        } else {
+            // 其他错误
+            console.error('请求错误:', error.message);
         }
+        process.exit(1);
     }
-}
-async function main() {
-    const project = await getProject();
-    const response = await callDashScope(project);
-    if (response.status === 200) {
-        try {
-            const result = JSON.parse(response.data.output.text);
-            fs.writeFileSync(outputZhPath, result.zh);
-            console.log('readme.md generated successfully!');
-    
-            fs.writeFileSync(outputEnPath, result.en);
-            console.log('readme_en.md generated successfully!');
-        } catch (e) {
-          console.error('写入文章时出错：', e.message);
-          process.exit(1);
-        }
-    } else {
-      console.error(`调用百炼服务出错，
-        message:${response.data.message},
-        request_id:${response.headers['request_id']}`);
-      process.exit(1);
-    }
-}
-
-main();
+ }

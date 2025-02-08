@@ -9,11 +9,14 @@ program
     require('../src/commands/publish');
   });
 
-  program
+program
   .command('generate')
   .description('generate readme.md and readme_en.md in the current directory')
-  .action(() => {
-    require('../src/commands/generate');
+  .option('-u, --url <url>', 'The url of the FC service', '')
+  .action(async (cmdObj) => {
+    const { url } = cmdObj
+    const generate = require('../src/commands/generate');
+    await generate(url);
   });
 
 
