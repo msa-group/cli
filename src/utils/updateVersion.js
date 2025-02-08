@@ -14,11 +14,15 @@ async function getVersion(projectName) {
 
 const updateVersion = async (descriptionData, descriptionPath) => {
     const projectName = descriptionData.Name;
-    const currentVersion = await getVersion(projectName);
-    const semverType = process.env.SEMVER_TYPE;
-
-    // 计算出下一个版本的版本号
-    descriptionData.Version = semver.inc(currentVersion, semverType);
+    try {
+        const currentVersion = await getVersion(projectName);
+        const semverType = process.env.SEMVER_TYPE;
+    
+        // 计算出下一个版本的版本号
+        descriptionData.Version = semver.inc(currentVersion, semverType);
+    } catch (error) {
+        descriptionData.Version = '0.0.1'
+    }
     const updateDescript = yaml.dump(descriptionData, {
         lineWidth: -1, // 防止自动换行
         noRefs: true   // 移除引用
