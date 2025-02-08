@@ -4,7 +4,7 @@ const path = require('path');
 const axios = require('axios');
 
 const readmePath = path.resolve(process.cwd(), 'README.md');
-const outputPath_zh = path.resolve(process.cwd(), 'readme_test.md');
+const outputPath_zh = path.resolve(process.cwd(), 'readme.md');
 const outputPath_en = path.resolve(process.cwd(), 'readme_en.md')
 
 module.exports = async function (url) {
