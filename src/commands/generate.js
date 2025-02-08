@@ -13,7 +13,6 @@ module.exports = async function (url) {
     const currentSha = process.env.GITHUB_SHA;
     const previousSha = process.env.GITHUB_EVENT_BEFORE;
 
-    console.log("=====",currentSha,previousSha)
     let isChanged = true;
     try {
         // 获取此次push中修改的文件列表

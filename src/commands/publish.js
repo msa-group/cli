@@ -4,7 +4,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 const _ = require('lodash');
 const updateVersion = require('../utils/updateVersion');
-const reuseReadme = require('../utils/reuseReadme');
+const reuseReadme = require('../utils/readmeUtilEn');
 
 function getFilePath(dir, fileName) {
   const yamlPath = path.resolve(dir, `${fileName}.yaml`);
