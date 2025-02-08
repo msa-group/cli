@@ -4,6 +4,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 const _ = require('lodash');
 const updateVersion = require('../utils/updateVersion');
+const reuseReadme = require('../utils/reuseReadme');
 
 function getFilePath(dir, fileName) {
   const yamlPath = path.resolve(dir, `${fileName}.yaml`);
@@ -52,6 +53,9 @@ async function main() {
     const descriptionFile = fs.readFileSync(descriptionPath, 'utf8');
     const descriptionData = yaml.load(descriptionFile);
     const updateDescripData = await updateVersion(descriptionData, descriptionPath);
+
+    // 判断readme文件是否需要复用已有文件
+    await reuseReadme(descriptionData);
 
     // 读取并解析 包内的 publish.yaml
     const publishFile = fs.readFileSync(packagePublishPath, 'utf8');
