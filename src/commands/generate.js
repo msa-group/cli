@@ -18,9 +18,11 @@ module.exports = async function (url) {
         // 获取此次push中修改的文件列表
         const diffOutput = execSync(`git diff --name-only ${previousSha} ${currentSha}`, { encoding: 'utf-8' });
         const changedFiles = diffOutput.split('\n').map(file => file.trim());
-
+        console.log("以下文件被更改：");
+        console.log(changedFiles);
         // 检查是否有README.md被修改
-        isChanged = changedFiles.includes('README.md') || changedFiles.includes('readme.md');
+        const foundItem = changedFiles.find(item => item.endsWith('readme.md') || item.endsWith('README.md'));
+        isChanged = Boolean(foundItem);
     } catch (error) {
         console.error('获取Git diff时出错:', error);
     }
