@@ -1,6 +1,6 @@
 {
   "name": "msa-tool",
-  "version": "0.0.1-beta-26",
+  "version": "0.0.1-beta-28",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -23,7 +23,7 @@
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "msa-engine": "^0.0.1-beta-14",
+    "msa-engine": "^0.0.2-beta-2",
     "semver": "^7.6.3",
     "child_process": "^1.0.2"
   }

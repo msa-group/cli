@@ -10,13 +10,22 @@ function Router(req, res, next) {
 
 
 const RouterMap = {
+  '/api/config': (req, res) => {
+    const debugConfigContent = fs.existsSync("config.debug.yml") ? fs.readFileSync("config.debug.yml", 'utf8') : '';
+    res.json({
+        code: 200,
+        data: {
+          debugConfigContent
+        }
+    })
+  },
   '/api/msa': (req, res) => {
-    const filePath = process.env.MSA_ENTRY_FILE;
+    const filePath = req.query.filePath;
     const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
     res.json({
         code: 200,
         data: {
-          content
+          content,
         }
     })
   }

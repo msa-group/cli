@@ -23,9 +23,7 @@ program
 program
   .command('dev')
   .description('The console of msa-engine server')
-  .option('-f, --file <file>', 'The entry yaml file to serve')
-  .action((options) => {
-    process.env.MSA_ENTRY_FILE = options.file || 'msa.yml';
+  .action(() => {
     require('../src/commands/serve');
   });
 
