@@ -12,11 +12,12 @@ program
 program
   .command('upload')
   .description('upload the project to oss')
-  .option('-z, --zip <name>', 'The name of the zip ', '')
+  .option('-z, --zip <zip>', 'The name of the zip ', '')
   .action(async (cmdObj) => {
-    const { name } = cmdObj;
+    console.log("cmdObj",JSON.stringify(cmdObj))
+    const { zip } = cmdObj;
     const upload = require('../src/commands/upload');
-    await upload(name);
+    await upload(zip);
   });
 
 program
