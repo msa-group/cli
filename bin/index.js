@@ -10,6 +10,16 @@ program
   });
 
 program
+  .command('upload')
+  .description('upload the project to oss')
+  .option('-z, --zip <name>', 'The name of the zip ', '')
+  .action(async (cmdObj) => {
+    const { name } = cmdObj;
+    const upload = require('../src/commands/upload');
+    await upload(name);
+  });
+
+program
   .command('generate')
   .description('generate readme.md and readme_en.md in the current directory')
   .option('-u, --url <url>', 'The url of the FC service', '')
