@@ -28,20 +28,18 @@ function init() {
     lineNumbers: true,
   });
 
-  function generate(text) {
+  function generate(text, globalParams, scenceConfig) {
     const engine = new Engine();
-
-    engine.parse(text).then((parseEngine) => {
-
-      yamlViewer.setValue(parseEngine.create());
-
-      const operationJson = parseEngine.getOperations();
-      $jsonViewer.textContent = JSON.stringify(operationJson, null, 2);
-    }).catch(err => {
-      $errorDialogContent.textContent = err.message;
-      $errorDialog.showModal();
-      console.error(err);
-    });
+    engine.parse(text, { Global: globalParams, Parameters: scenceConfig.Parameters })
+      .then((parseEngine) => {
+        yamlViewer.setValue(parseEngine.create());
+        const routes = parseEngine.getRoutesStruct();
+        $jsonViewer.textContent = JSON.stringify(routes, null, 2);
+      }).catch(err => {
+        $errorDialogContent.textContent = err.message;
+        $errorDialog.showModal();
+        console.error(err);
+      });
   }
 
   $panelTitle.forEach(($title) => {
@@ -70,13 +68,34 @@ function init() {
 
 
 
-  fetch("/api/msa?filePath=./msa/Msa.yml").then(res => res.json()).then(({ data }) => {
-    if (data.content) {
-      yamlEditor.setValue(data.content);
-      generate(data.content);
-    }
-  });
+  fetch("/api/config").then(res => res.json()).then(({ data }) => {
+    let globalConfig = jsyaml.load(data.debugConfigContent);
+    const scenceConfigs = globalConfig.ScenceConfigs;
+
+    const $selectEnv = document.getElementById('select-env');
+    $selectEnv.innerHTML = scenceConfigs.map(item => `<option value="${item.Url}">${item.Name}</option>`).join('');
+
+    $selectEnv.addEventListener('change', (event) => {
+      const filePath = event.target.value;
+      fetch("/api/msa?filePath=" + filePath).then(res => res.json()).then(({ data }) => {
+        if (data.content) {
+          const currentScenceConfig = scenceConfigs.find(item => item.Url === filePath);
+          yamlEditor.setValue(data.content);
+          generate(data.content, globalConfig.Parameters, currentScenceConfig);
+        }
+      });
+    });
+
+    fetch("/api/msa?filePath=" + scenceConfigs[0].Url).then(res => res.json()).then(({ data }) => {
+      if (data.content) {
+        yamlEditor.setValue(data.content);
+        generate(data.content, globalConfig.Parameters, scenceConfigs[0]);
+      }
+    })
+  })
 }
+
+
 
 
 
