@@ -46,7 +46,7 @@ function init() {
     engine.parse(text, { Global: globalParams, Parameters: scenceConfig.Parameters })
       .then((parseEngine) => {
         yamlViewer.setValue(parseEngine.create());
-        const routes = parseEngine.getRoutesStruct();
+        const routes = parseEngine.getArchitecture();
         $jsonViewer.textContent = JSON.stringify(routes, null, 2);
       }).catch(err => {
         $errorDialogContent.textContent = err.message;
