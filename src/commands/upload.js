@@ -5,7 +5,6 @@ const FormData = require('form-data');
 module.exports = async function sendZip(name) {
     const FC_SERVICE = process.env.FC_SERVICE;
     const ZIP_PATH = name;
-    console.log("====ZIP_PATH===", ZIP_PATH)
 
     if (!fs.existsSync(ZIP_PATH)) {
         console.error('Zip file not found:', ZIP_PATH);
