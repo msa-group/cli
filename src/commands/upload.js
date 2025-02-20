@@ -18,7 +18,10 @@ module.exports = async function sendZip(name) {
   
     try {
       const response = await axios.post(FC_SERVICE, form, {
-        headers: form.getHeaders()
+        headers: {
+          ...form.getHeaders(),
+          'X-Token': process.env.FC_TOKEN
+        }
       });
       console.log('Success:', response.data);
     } catch (error) {
