@@ -4,7 +4,20 @@ window.onload = () => {
   init();
 }
 
+function getParamsFromUrl(url, key) {
+  const urlObj = new URL(url);
+  const params = urlObj.searchParams;
+  const paramsObj = {};
+  params.forEach((value, key) => {
+    paramsObj[key] = value;
+  });
+  return paramsObj[key];
+}
+
 function init() {
+
+  const currentScenceProfile = getParamsFromUrl(window.location.href, 'scenceProfile');
+
   const $jsonViewer = document.getElementById('json-viewer');
 
   const $panelTitle = document.querySelectorAll('.panel-title');
@@ -70,26 +83,29 @@ function init() {
 
   fetch("/api/config").then(res => res.json()).then(({ data }) => {
     let globalConfig = jsyaml.load(data.debugConfigContent);
-    const scenceConfigs = globalConfig.ScenceConfigs;
+    const scenceProfiles = globalConfig.SceneProfiles;
 
     const $selectEnv = document.getElementById('select-env');
-    $selectEnv.innerHTML = scenceConfigs.map(item => `<option value="${item.Url}">${item.Name}</option>`).join('');
+    $selectEnv.innerHTML = scenceProfiles.map(item => `<option value="${item.Template}">${item.DisplayName['zh-cn']}</option>`).join('');
 
     $selectEnv.addEventListener('change', (event) => {
       const filePath = event.target.value;
+      const url = window.location.pathname;
+      window.history.replaceState({}, '', url + '?scenceProfile=' + filePath);
       fetch("/api/msa?filePath=" + filePath).then(res => res.json()).then(({ data }) => {
         if (data.content) {
-          const currentScenceConfig = scenceConfigs.find(item => item.Url === filePath);
+          const currentScenceProfile = scenceProfiles.find(item => item.Template === filePath);
           yamlEditor.setValue(data.content);
-          generate(data.content, globalConfig.Parameters, currentScenceConfig);
+          generate(data.content, globalConfig.Parameters, currentScenceProfile);
         }
       });
     });
 
-    fetch("/api/msa?filePath=" + scenceConfigs[0].Url).then(res => res.json()).then(({ data }) => {
+    const scenceProfile = currentScenceProfile ? scenceProfiles.find(item => item.Template === currentScenceProfile) : scenceProfiles[0];
+    fetch("/api/msa?filePath=" + scenceProfile.Template).then(res => res.json()).then(({ data }) => {
       if (data.content) {
         yamlEditor.setValue(data.content);
-        generate(data.content, globalConfig.Parameters, scenceConfigs[0]);
+        generate(data.content, globalConfig.Parameters, scenceProfile);
       }
     })
   })
