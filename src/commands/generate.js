@@ -33,17 +33,17 @@ module.exports = async function (url) {
         return;
     }
         
-    const descriptionContent = fs.readFileSync(readmePath, 'utf8');
-    if (!descriptionContent) {
-        console.error('不存在原始 README.md 文件，无法生成 Readme');
-        process.exit(1);
-    }
-    if (!url) {
-        console.error('Error: URL is required. Use -u or --url to specify the FC service URL.');
-        process.exit(1);
-    }
-    console.log(`Generating README files using FC service at: ${url}`);
     try {
+        const descriptionContent = fs.readFileSync(readmePath, 'utf8');
+        if (!descriptionContent) {
+            console.error('不存在原始 README.md 文件，无法生成 Readme');
+            process.exit(1);
+        }
+        if (!url) {
+            console.error('Error: URL is required. Use -u or --url to specify the FC service URL.');
+            process.exit(1);
+        }
+        console.log(`Generating README files using FC service at: ${url}`);
         // 发送 POST 请求到指定的 FC 服务 URL
         const response = await axios.post(url, {
             descriptionContent: descriptionContent,
