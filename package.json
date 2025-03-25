@@ -1,13 +1,14 @@
 {
   "name": "msa-tool",
-  "version": "0.0.1-beta-37",
+  "version": "0.0.1-beta-38",
   "description": "",
   "main": "index.js",
   "bin": {
     "msa-tool": "./bin/index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "rspack serve"
   },
   "publishConfig": {
     "access": "public",
@@ -16,16 +17,31 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/lang-yaml": "^6.1.2",
     "@rspack/cli": "^1.1.8",
     "@rspack/core": "^1.1.8",
     "@rspack/dev-server": "^1.0.10",
+    "@uiw/codemirror-theme-material": "^4.23.10",
+    "@uiw/react-codemirror": "^4.23.10",
     "axios": "^1.7.9",
     "child_process": "^1.0.2",
     "commander": "^12.1.0",
     "form-data": "^4.0.2",
     "js-yaml": "^4.1.0",
+    "less": "^4.2.2",
+    "less-loader": "^12.2.0",
     "lodash": "^4.17.21",
-    "msa-engine": "^0.0.2-beta-4",
-    "semver": "^7.6.3"
+    "msa-engine": "^0.1.0-beta-5",
+    "msa-spec": "^0.1.0-beta-1",
+    "msa-form": "^0.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "semver": "^7.6.3",
+    "typescript": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1"
   }
 }

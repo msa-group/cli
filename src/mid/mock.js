@@ -19,6 +19,18 @@ const RouterMap = {
         }
     })
   },
+  '/api/spec': (req, res) => {
+    const filePath = req.query.filePath;
+    const key = req.query.key;
+    const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+    res.json({
+        code: 200,
+        data: {
+          content,
+          key
+        }
+    })
+  },
   '/api/msa': (req, res) => {
     const filePath = req.query.filePath;
     const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
