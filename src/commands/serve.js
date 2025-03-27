@@ -22,6 +22,9 @@ const complier = rspack({
     new rspack.HtmlRspackPlugin({
       title: 'MSA Config Checker',
       template: htmlFile,
+      templateParameters: {
+        SEC_TOKEN: process.env.SEC_TOKEN || "",
+      }
     }),
     // new rspack.IgnorePlugin({
     //   resourceRegExp: /\.d\.ts$/,
@@ -63,6 +66,14 @@ const devServer = new RspackDevServer({
   client: {
     overlay: false,
   },
+  proxy: [{
+    context: ['/data/api.json'],
+    target: 'https://apig.console.aliyun.com/',
+    changeOrigin: true,
+    secure: false,
+    ws: true,
+    withCredentials: true,
+  }],
   allowedHosts: [
     "my.console.aliyun.com",
   ],

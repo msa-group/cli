@@ -24,11 +24,19 @@ function Scene() {
   const [globalParameters, setGlobalParameters] = useState({});
   const [sceneParameters, setSceneParameters] = useState({});
   const [rosYaml, setRosYaml] = useState("");
+  const [flowYaml, setFlowYaml] = useState("");
   const [config, setConfig] = useState({ SceneProfiles: [] });
   const [specs, setSpecs] = useState({});
+  const [spec, setSpec] = useState({});
   const [activeKey, setActiveKey] = useState("");
   const [rosYamlEditorHeight, setRosYamlEditorHeight] = useState(0);
+  const [deployType, setDeployType] = useState<"Flow" | "Msa">("Msa");
   const rosYamlRef = useRef<HTMLDivElement>(null);
+
+
+
+
+
   useEffect(() => {
     fetch("/api/config").then((res) => res.json()).then(({ data }) => {
       let globalConfig = jsYaml.load(data.debugConfigContent);
@@ -42,35 +50,50 @@ function Scene() {
   useEffect(() => {
     if (currentScenceProfile) {
       if (currentScenceProfile.Spec) {
-        const specPath = Object.keys(currentScenceProfile.Spec).map((key) => {
-          return {
-            key,
-            path: currentScenceProfile.Spec[key]
-          };
-        });
-        Promise.all(specPath.map((path) => {
-          return fetch(`/api/spec?filePath=${path.path}&key=${path.key}`).then((res) => res.json());
-        })).then((res) => {
-          const specificSpecs = {};
-          res.forEach(({ data }) => {
-            specificSpecs[data.key] = {
-              type: specMapping[data.key] || "",
-              spec: data.content
+        if (typeof currentScenceProfile.Spec === "string") {
+          fetch(`/api/spec?filePath=${currentScenceProfile.Spec}`).then((res) => res.json()).then(({ data }) => {
+            const spec = jsYaml.load(data.content);
+            fetch(`/api/msa?filePath=${currentScenceProfile.Template}`).then((res) => res.json()).then(({ data }) => {
+              setSpec(spec);
+              if (currentScenceProfile.DeployType === "Flow") {
+                setFlowYaml(data.content);
+                setDeployType("Flow");
+              } else {
+                setMsaYaml(data.content);
+                setSceneParameters(currentScenceProfile.Parameters);
+                setDeployType("Msa");
+              }
+            });
+          });
+        } else {
+          const specPath = Object.keys(currentScenceProfile.Spec).map((key) => {
+            return {
+              key,
+              path: currentScenceProfile.Spec[key]
             };
           });
-          fetch(`/api/msa?filePath=${currentScenceProfile.Template}`).then((res) => res.json()).then(({ data }) => {
-            setMsaYaml(data.content);
-            getSpecs(data.content).then((spec) => {
-              const mergedSpecs = { ...spec.specs, ...specificSpecs };
-              setSpecs(mergedSpecs);
-              setActiveKey(Object.keys(mergedSpecs)[0]);
+          Promise.all(specPath.map((path) => {
+            return fetch(`/api/spec?filePath=${path.path}&key=${path.key}`).then((res) => res.json());
+          })).then((res) => {
+            const specificSpecs = {};
+            res.forEach(({ data }) => {
+              specificSpecs[data.key] = {
+                type: specMapping[data.key] || "",
+                spec: data.content
+              };
             });
-            setSceneParameters(currentScenceProfile.Parameters);
-
+            fetch(`/api/msa?filePath=${currentScenceProfile.Template}`).then((res) => res.json()).then(({ data }) => {
+              setMsaYaml(data.content);
+              getSpecs(data.content).then((spec) => {
+                const mergedSpecs = { ...spec.specs, ...specificSpecs };
+                setSpecs(mergedSpecs);
+                setActiveKey(Object.keys(mergedSpecs)[0]);
+              });
+              setSceneParameters(currentScenceProfile.Parameters);
+            });
           });
-        });
+        }
       }
-
     }
   }, [currentScenceProfile]);
 
@@ -89,7 +112,6 @@ function Scene() {
   }, [sceneParameters, msaYaml]);
 
   const onSubmit = (key, values: any) => {
-    values.Name = values.name;
     const params = Object.assign({}, sceneParameters);
     if (params[key]) {
       params[key] = {
@@ -120,24 +142,50 @@ function Scene() {
       height: "100vh",
       backgroundColor: "#f5f5f5",
     }}>
-      <Tabs
-        className="scene-tabs flex-1"
-        activeKey={activeKey}
-        onChange={setActiveKey}
-        tabClassName="scene-tab-item"
-        contentClassName="scene-tab-content"
-        items={specsKey.map((key) => {
-          const spec = specs[key].spec;
-          const specJson = jsYaml.load(spec);
-          return {
-            key,
-            label: key,
-            content: (
-              <SpecForm title={key} spec={specJson} onSubmit={onSubmit} />
-            )
-          }
-        })}
-      />
+      {
+        !isEmpty(spec)
+          ? (
+            <div className="flex-1">
+              <MsaForm
+                formConfig={{
+                  ...spec as any,
+                }}
+                onSubmit={(values) => {
+                  if (deployType === "Flow") {
+                    const res = engine.core.render(flowYaml, {
+                      ...values,
+                      ...globalParameters,
+                    });
+                    setFlowYaml(res);
+                  } else {
+                    
+                  }
+                }}
+              / >
+            </div>
+          )
+          : (
+            <Tabs
+              className="scene-tabs flex-1"
+              activeKey={activeKey}
+              onChange={setActiveKey}
+              tabClassName="scene-tab-item"
+              contentClassName="scene-tab-content"
+              items={specsKey.map((key) => {
+                const spec = specs[key].spec;
+                const specJson = jsYaml.load(spec);
+                return {
+                  key,
+                  label: key,
+                  content: (
+                    <SpecForm title={key} spec={specJson} globalParameters={globalParameters} onSubmit={onSubmit} />
+                  )
+                }
+              })}
+            />
+          )
+      }
+
       <div className="flex-1">
         <div style={{
           height: "100%",
@@ -159,11 +207,11 @@ function Scene() {
           <div ref={rosYamlRef} className="flex-1">
             <CodeMirror
               height={rosYamlEditorHeight + "px"}
-              value={rosYaml}
+              value={rosYaml || flowYaml}
               extensions={[yaml()]}
               lang="yaml"
               theme={materialDark}
-              readOnly
+            // readOnly
             />
           </div>
         </div>
@@ -172,8 +220,32 @@ function Scene() {
   );
 }
 
-function SpecForm(props: { spec: any, title: string, onSubmit: (key: string, values: any) => void }) {
-  const { spec, title, onSubmit } = props;
+function SpecForm(props: { spec: any, title: string, globalParameters: any, onSubmit: (key: string, values: any) => void }) {
+  const { spec, title, globalParameters, onSubmit } = props;
+  const mutSpec = Object.assign({}, spec);
+  if (mutSpec?.Parameters?.YamlContent) {
+    mutSpec.Envs = globalParameters
+    // @ts-ignore
+    mutSpec.Parameters.YamlContent.Component = "Custom";
+    // @ts-ignore
+    mutSpec.Parameters.YamlContent.ComponentProps = {
+      renderFunc: ({ key, config, field, FormItem }) => {
+        return (
+          <FormItem
+            key={key} label={config.label['zh-cn']} required={config.required}
+          >
+            <CodeMirror
+              minHeight="300px"
+              {...field.init(key)}
+              extensions={[yaml()]}
+              lang="yaml"
+              theme={materialDark}
+            />
+          </FormItem>
+        )
+      }
+    };
+  }
   return (
     <div className="flex-1" style={{
       padding: "1rem",
@@ -186,7 +258,7 @@ function SpecForm(props: { spec: any, title: string, onSubmit: (key: string, val
       <MsaForm
         formConfig={{
           Title: title,
-          ...spec,
+          ...mutSpec,
         }}
         onSubmit={(values) => onSubmit(title, values)}
       />
