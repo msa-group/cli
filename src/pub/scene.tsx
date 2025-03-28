@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import jsYaml from "js-yaml";
 import { yaml } from "@codemirror/lang-yaml";
-// import { json } from "@codemirror/lang-json";
 import { materialDark } from "@uiw/codemirror-theme-material";
 import MseEngine from "msa-engine";
 import { components, getSpecs, specMapping } from "msa-spec";
 import MsaForm from "msa-form";
 import CodeMirror from "@uiw/react-codemirror";
+import request from "./request";
+import { SceneProfileT } from "./typing";
+
 import '@alicloud/console-components/dist/xconsole.css';
 
 import Tabs from "./components/Tab";
@@ -19,27 +21,84 @@ const isEmpty = (obj: any) => {
 
 function Scene() {
 
-  const [msaYaml, setMsaYaml] = useState("");
-  const [currentScenceProfile, setCurrentScenceProfile] = useState(null);
+  const [currentScenceProfile, setCurrentScenceProfile] = useState<SceneProfileT | null>(null);
   const [globalParameters, setGlobalParameters] = useState({});
   const [sceneParameters, setSceneParameters] = useState({});
-  const [rosYaml, setRosYaml] = useState("");
-  const [flowYaml, setFlowYaml] = useState("");
   const [config, setConfig] = useState({ SceneProfiles: [] });
   const [specs, setSpecs] = useState({});
   const [spec, setSpec] = useState({});
   const [activeKey, setActiveKey] = useState("");
-  const [rosYamlEditorHeight, setRosYamlEditorHeight] = useState(0);
   const [deployType, setDeployType] = useState<"Flow" | "Msa">("Msa");
-  const rosYamlRef = useRef<HTMLDivElement>(null);
+  const [yamlContent, setYamlContent] = useState("");
+  const [parsedYamlContent, setParsedYamlContent] = useState("");
 
-
-
-
+  const querySpec = async (currentScenceProfile: SceneProfileT) => {
+    if (typeof currentScenceProfile.Spec === "string") {
+      const spec = await request<{ content: string }>({
+        url: `/api/spec`,
+        data: {
+          filePath: currentScenceProfile.Spec,
+        }
+      });
+      const msa = await request<{ content: string }>({
+        url: `/api/msa`,
+        data: {
+          filePath: currentScenceProfile.Template,
+        }
+      });
+      if (currentScenceProfile.DeployType === "Flow") {
+        setSpec(jsYaml.load(spec.content));
+        setYamlContent(spec.content);
+        setDeployType("Flow");
+      } else {
+        setYamlContent(msa.content);
+        setSceneParameters(currentScenceProfile.Parameters);
+        setDeployType("Msa");
+      }
+    } else {
+      const specPath = Object.keys(currentScenceProfile.Spec).map((key) => {
+        return {
+          key,
+          path: currentScenceProfile.Spec[key]
+        };
+      });
+      const resList = await Promise.all(specPath.map((path) => {
+        return request<{ content: string, key: string }>({
+          url: `/api/spec`,
+          data: {
+            filePath: path.path,
+            key: path.key
+          }
+        });
+      }));
+      const specificSpecs = {};
+      resList.forEach(({ key, content }) => {
+        specificSpecs[key] = {
+          type: specMapping[key] || "",
+          spec: content
+        };
+      });
+      const msa = await request<{ content: string }>({
+        url: `/api/msa`,
+        data: {
+          filePath: currentScenceProfile.Template,
+        }
+      });
+      getSpecs(msa.content).then((spec) => {
+        const mergedSpecs = { ...spec.specs, ...specificSpecs };
+        setSpecs(mergedSpecs);
+        setActiveKey(Object.keys(mergedSpecs)[0]);
+        setYamlContent(msa.content);
+      });
+      setSceneParameters(currentScenceProfile.Parameters);
+    }
+  }
 
   useEffect(() => {
-    fetch("/api/config").then((res) => res.json()).then(({ data }) => {
-      let globalConfig = jsYaml.load(data.debugConfigContent);
+    request<{ debugConfigContent: string }>({
+      url: "/api/config",
+    }).then(({ debugConfigContent }) => {
+      let globalConfig = jsYaml.load(debugConfigContent);
       const scenceProfiles = globalConfig.SceneProfiles;
       setCurrentScenceProfile(scenceProfiles[0]);
       setGlobalParameters(globalConfig.Parameters);
@@ -48,68 +107,32 @@ function Scene() {
   }, []);
 
   useEffect(() => {
-    if (currentScenceProfile) {
-      if (currentScenceProfile.Spec) {
-        if (typeof currentScenceProfile.Spec === "string") {
-          fetch(`/api/spec?filePath=${currentScenceProfile.Spec}`).then((res) => res.json()).then(({ data }) => {
-            const spec = jsYaml.load(data.content);
-            fetch(`/api/msa?filePath=${currentScenceProfile.Template}`).then((res) => res.json()).then(({ data }) => {
-              setSpec(spec);
-              if (currentScenceProfile.DeployType === "Flow") {
-                setFlowYaml(data.content);
-                setDeployType("Flow");
-              } else {
-                setMsaYaml(data.content);
-                setSceneParameters(currentScenceProfile.Parameters);
-                setDeployType("Msa");
-              }
-            });
-          });
-        } else {
-          const specPath = Object.keys(currentScenceProfile.Spec).map((key) => {
-            return {
-              key,
-              path: currentScenceProfile.Spec[key]
-            };
-          });
-          Promise.all(specPath.map((path) => {
-            return fetch(`/api/spec?filePath=${path.path}&key=${path.key}`).then((res) => res.json());
-          })).then((res) => {
-            const specificSpecs = {};
-            res.forEach(({ data }) => {
-              specificSpecs[data.key] = {
-                type: specMapping[data.key] || "",
-                spec: data.content
-              };
-            });
-            fetch(`/api/msa?filePath=${currentScenceProfile.Template}`).then((res) => res.json()).then(({ data }) => {
-              setMsaYaml(data.content);
-              getSpecs(data.content).then((spec) => {
-                const mergedSpecs = { ...spec.specs, ...specificSpecs };
-                setSpecs(mergedSpecs);
-                setActiveKey(Object.keys(mergedSpecs)[0]);
-              });
-              setSceneParameters(currentScenceProfile.Parameters);
-            });
-          });
-        }
-      }
+    if (currentScenceProfile?.Spec) {
+      querySpec(currentScenceProfile);
     }
   }, [currentScenceProfile]);
 
   useEffect(() => {
-    if (msaYaml && !isEmpty(sceneParameters)) {
-      engine.parse(msaYaml, {
-        Global: globalParameters,
-        Parameters: sceneParameters,
-      }, {
-        components
-      }).then((parseEngine) => {
-        const rs = parseEngine.create();
-        setRosYaml(rs);
-      });
+    if (yamlContent && !isEmpty(sceneParameters)) {
+      if (deployType === "Flow") {
+        const res = engine.core.render(yamlContent, {
+          ...sceneParameters,
+          ...globalParameters,
+        });
+        setParsedYamlContent(res);
+      } else {
+        engine.parse(yamlContent, {
+          Global: globalParameters,
+          Parameters: sceneParameters,
+        }, {
+          components
+        }).then((parseEngine) => {
+          const rs = parseEngine.create();
+          setParsedYamlContent(rs);
+        });
+      }
     }
-  }, [sceneParameters, msaYaml]);
+  }, [sceneParameters, globalParameters, yamlContent, deployType]);
 
   const onSubmit = (key, values: any) => {
     const params = Object.assign({}, sceneParameters);
@@ -121,15 +144,9 @@ function Scene() {
     } else {
       params[key] = values;
     }
-
+    console.log(params, 'params...')
     setSceneParameters(params);
   }
-
-  useEffect(() => {
-    if (rosYamlRef.current) {
-      setRosYamlEditorHeight(rosYamlRef.current.clientHeight);
-    }
-  }, [rosYamlRef.current]);
 
   const specsKey = Object.keys(specs);
 
@@ -150,18 +167,8 @@ function Scene() {
                 formConfig={{
                   ...spec as any,
                 }}
-                onSubmit={(values) => {
-                  if (deployType === "Flow") {
-                    const res = engine.core.render(flowYaml, {
-                      ...values,
-                      ...globalParameters,
-                    });
-                    setFlowYaml(res);
-                  } else {
-                    
-                  }
-                }}
-              / >
+                onSubmit={(values) => setSceneParameters(values)}
+              />
             </div>
           )
           : (
@@ -203,15 +210,15 @@ function Scene() {
             borderBottom: "1px solid #e0e0e0",
             fontSize: "1.1rem",
             fontWeight: 500
-          }}>ROS YAML</h3>
-          <div ref={rosYamlRef} className="flex-1">
+          }}>{deployType === "Flow" ? "Flow" : "ROS"} YAML</h3>
+          <div className="flex-1" style={{ height: "100%", overflow: "auto", backgroundColor: "#2e3235" }}>
             <CodeMirror
-              height={rosYamlEditorHeight + "px"}
-              value={rosYaml || flowYaml}
+              height={"100%"}
+              value={parsedYamlContent}
               extensions={[yaml()]}
               lang="yaml"
               theme={materialDark}
-            // readOnly
+              readOnly
             />
           </div>
         </div>
