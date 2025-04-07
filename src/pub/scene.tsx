@@ -48,7 +48,7 @@ function Scene() {
       });
       if (currentScenceProfile.DeployType === "Flow") {
         setSpec(jsYaml.load(spec.content));
-        setYamlContent(spec.content);
+        setYamlContent(msa.content);
         setDeployType("Flow");
       } else {
         setYamlContent(msa.content);
@@ -115,6 +115,7 @@ function Scene() {
   useEffect(() => {
     if (yamlContent && !isEmpty(sceneParameters)) {
       if (deployType === "Flow") {
+        console.log(yamlContent, 'asd...')
         const res = engine.core.render(yamlContent, {
           ...sceneParameters,
           ...globalParameters,
@@ -144,7 +145,6 @@ function Scene() {
     } else {
       params[key] = values;
     }
-    console.log(params, 'params...')
     setSceneParameters(params);
   }
 
@@ -162,7 +162,7 @@ function Scene() {
       {
         !isEmpty(spec)
           ? (
-            <div className="flex-1">
+            <div className="flex-1" style={{ maxWidth: "50%" }}>
               <MsaForm
                 formConfig={{
                   ...spec as any,
@@ -181,6 +181,7 @@ function Scene() {
               items={specsKey.map((key) => {
                 const spec = specs[key].spec;
                 const specJson = jsYaml.load(spec);
+                console.log(specJson, key,'specJson...')
                 return {
                   key,
                   label: key,
@@ -193,7 +194,7 @@ function Scene() {
           )
       }
 
-      <div className="flex-1">
+      <div className="flex-1" style={{ maxWidth: "50%" }}>
         <div style={{
           height: "100%",
           display: "flex",
